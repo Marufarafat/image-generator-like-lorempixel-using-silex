@@ -3,9 +3,12 @@
 
 use Symfony\Component\HttpFoundation\{Request, Response};
 
+//http://localhost/loremimage/500/300?image=3
 $app->get('/{weight}/{height}', function(Request $request, Silex\Application $app, $weight, $height){
 
-    $image = $app['db']->fetchAssoc("SELECT filename FROM images ORDER BY rand() LIMIT 1");
+    $cluse = $request->get("image") ? "WHERE id = ?" : "ORDER BY rand() LIMIT 1";
+
+    $image = $app['db']->fetchAssoc("SELECT filename FROM images {$cluse}", [$request->get("image")]);
     
     $cacheKey = "{$image['filename']}:{$weight}:{$height}";
 
@@ -18,7 +21,7 @@ $app->get('/{weight}/{height}', function(Request $request, Silex\Application $ap
                             ->fit($weight, $height)
                             ->greyscale()   
                             ->response('png');
-        $app['cache']->store($cacheKey, $placeholder);
+//        $app['cache']->store($cacheKey, $placeholder);
     }    
     return new Response($placeholder, 200,[
         "Content-Type" => "image/png"
